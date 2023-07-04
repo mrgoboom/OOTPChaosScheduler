@@ -152,7 +152,7 @@ window.onload = function () {
     return {
       numGames: document.getElementById("games-count").value,
       numDoubleheaders: document.getElementById("doubleheader-count").value,
-      interleague: document.getElementById("interleague").value,
+      interleague: document.getElementById("interleague").checked,
       extraGames: document.getElementById("extra-games").value,
     };
   }
@@ -221,30 +221,81 @@ window.onload = function () {
           }
         }
       }
-      console.log(headerLabels);
+
       for (const headerLabel of headerLabels) {
         const matches = headerLabel.textContent.matchAll(/\d+/gm);
-        console.log(matches.length);
 
         let subLeague = 1;
         let showSubLeague = false;
 
         if (headerLabel.textContent.startsWith("Sub League")) {
           subLeague = Number(matches.next().value[0]);
-          console.log(`SL: ${subLeague}`);
           showSubLeague = true;
         }
         const division = Number(matches.next().value[0]);
-        console.log(`DIV: ${division}`);
         const games = remainingCounts.get(
           division * (subLeague === 1 ? 1 : -1)
         );
-        console.log(`Games: ${games}`);
 
         headerLabel.textContent = `${
           showSubLeague ? `Sub League ${subLeague} ` : ""
         } Division ${division} - Games Remaining ${games}`;
       }
+    };
+
+    const addMatchup = function (
+      sl1,
+      div1,
+      sl2,
+      div2,
+      divScheduleContainer,
+      teamsInOppDiv
+    ) {
+      const sl1Factor = sl1 === 1 ? 1 : -1;
+      const sl2Factor = sl2 === 1 ? 1 : -1;
+      const sameTeam = sl1 === sl2 && div1 === div2;
+
+      const matchup = new Matchup(0, div1 * sl1Factor, div2 * sl2Factor);
+      matchups.push(matchup);
+
+      const matchupContainer = document.createElement("div");
+      matchupContainer.classList.add("division-matchup");
+      divScheduleContainer.appendChild(matchupContainer);
+
+      const inputId = createInputId(sl1, div1, sl2, div2);
+
+      const matchupLabel = document.createElement("label");
+      matchupLabel.setAttribute("for", inputId);
+      matchupLabel.textContent = sameTeam
+        ? "Games vs Own Division"
+        : `Games vs Sub League ${sl2} Division ${div2}`;
+      matchupContainer.appendChild(matchupLabel);
+
+      const matchupInput = document.createElement("input");
+      matchupInput.setAttribute("type", "number");
+      matchupInput.setAttribute("id", inputId);
+      matchupInput.setAttribute("name", inputId);
+      matchupInput.setAttribute("value", "0");
+      matchupContainer.appendChild(matchupInput);
+
+      const matchupSpan = document.createElement("span");
+      matchupSpan.setAttribute("id", createSpanId(sl1, div1, sl2, div2));
+      matchupSpan.textContent = "(0 games per opponent)";
+      matchupContainer.appendChild(matchupSpan);
+
+      matchupInput.addEventListener("change", function () {
+        const newTotal = Number(matchupInput.value);
+        matchup.numGames = newTotal;
+
+        const opponents = sameTeam ? teamsInOppDiv - 1 : teamsInOppDiv;
+
+        matchupSpan.textContent = `(${Math.trunc(
+          newTotal / opponents
+        )} games per opponent${
+          newTotal % opponents === 0 ? "" : ` and ${newTotal % opponents} extra`
+        })`;
+        updateHeaders();
+      });
     };
 
     mainContainer.removeChild(settingsContainer);
@@ -269,58 +320,26 @@ window.onload = function () {
         headerLabels.push(divScheduleHeader);
 
         for (let k = j; k < subLeague.length; k++) {
-          const slFactor = i === 0 ? 1 : -1;
-          const matchup = new Matchup(
-            0,
-            (j + 1) * slFactor,
-            (k + 1) * slFactor
+          addMatchup(
+            i + 1,
+            j + 1,
+            i + 1,
+            k + 1,
+            divScheduleContainer,
+            subLeague[k]
           );
-          matchups.push(matchup);
-
-          const matchupContainer = document.createElement("div");
-          matchupContainer.classList.add("division-matchup");
-          divScheduleContainer.appendChild(matchupContainer);
-
-          const inputId = createInputId(i + 1, j + 1, i + 1, k + 1);
-
-          const matchupLabel = document.createElement("label");
-          matchupLabel.setAttribute("for", inputId);
-          matchupLabel.textContent =
-            j === k
-              ? "Games vs Own Division"
-              : `Games vs Sub League ${i + 1} Division ${k + 1}`;
-          matchupContainer.appendChild(matchupLabel);
-
-          const matchupInput = document.createElement("input");
-          matchupInput.setAttribute("type", "number");
-          matchupInput.setAttribute("id", inputId);
-          matchupInput.setAttribute("name", inputId);
-          matchupInput.setAttribute("value", "0");
-          matchupContainer.appendChild(matchupInput);
-
-          const matchupSpan = document.createElement("span");
-          matchupSpan.setAttribute(
-            "id",
-            createSpanId(i + 1, j + 1, i + 1, k + 1)
-          );
-          matchupSpan.textContent = "(0 games per opponent)";
-          matchupContainer.appendChild(matchupSpan);
-
-          matchupInput.addEventListener("change", function () {
-            const newTotal = Number(matchupInput.value);
-            matchup.numGames = newTotal;
-
-            const opponents = j === k ? subLeague[k] - 1 : subLeague[k];
-
-            matchupSpan.textContent = `(${Math.trunc(
-              newTotal / opponents
-            )} games per opponent${
-              newTotal % opponents === 0
-                ? ""
-                : ` and ${newTotal % opponents} extra`
-            })`;
-            updateHeaders();
-          });
+        }
+        if (i === 0 && structure.numSubLeagues === 2 && settings.interleague) {
+          for (let k = 0; k < structure.subLeagues[1].length; k++) {
+            addMatchup(
+              1,
+              j + 1,
+              2,
+              k + 1,
+              divScheduleContainer,
+              structure.subLeagues[1][k]
+            );
+          }
         }
       }
     }
