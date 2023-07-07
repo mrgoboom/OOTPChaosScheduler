@@ -11,10 +11,13 @@ const MAX_TEAMS_DIVISION = 20;
 const DEFAULT_TEAMS_DIVISION = 4;
 
 //idea: if sl2 division number is negative
-const Matchup = class {
-  constructor(numGames, div1, div2) {
+const DivMatchup = class {
+  constructor(numGames, div1, div2, teamsInDiv1, teamsInDiv2) {
     this.numGames = numGames;
-    this.divs = new Set([div1, div2]);
+    this.div1 = div1;
+    this.div2 = div2;
+    this.teamsInDiv1 = teamsInDiv1;
+    this.teamsInDiv2 = teamsInDiv2;
   }
 };
 
@@ -207,18 +210,24 @@ window.onload = function () {
     const structure = getStructureData();
 
     const headerLabels = [];
-    const matchups = [];
+    const divMatchups = [];
 
     const updateHeaders = function () {
-      const remainingCounts = new Map();
-      for (const matchup of matchups) {
-        for (const div of matchup.divs) {
-          if (!remainingCounts.has(div)) {
-            remainingCounts.set(div, settings.numGames - matchup.numGames);
+      const remaining = new Map();
+      for (const matchup of divMatchups) {
+        for (let i = 1; i <= 2; i++) {
+          const div = matchup[`div${i}`];
+          let opps = matchup[`teamsInDiv${3 - i}`];
+          const sameDiv = div === matchup[`div${3 - i}`];
+          if (sameDiv) opps--;
+
+          if (!remaining.has(div)) {
+            remaining.set(div, settings.numGames - matchup.numGames * opps);
           } else {
-            const oldVal = remainingCounts.get(div);
-            remainingCounts.set(div, oldVal - matchup.numGames);
+            const oldVal = remaining.get(div);
+            remaining.set(div, oldVal - matchup.numGames * opps);
           }
+          if (sameDiv) break;
         }
       }
 
@@ -233,9 +242,7 @@ window.onload = function () {
           showSubLeague = true;
         }
         const division = Number(matches.next().value[0]);
-        const games = remainingCounts.get(
-          division * (subLeague === 1 ? 1 : -1)
-        );
+        const games = remaining.get(division * (subLeague === 1 ? 1 : -1));
 
         headerLabel.textContent = `${
           showSubLeague ? `Sub League ${subLeague} ` : ""
@@ -249,14 +256,21 @@ window.onload = function () {
       sl2,
       div2,
       divScheduleContainer,
+      teamsInDiv,
       teamsInOppDiv
     ) {
       const sl1Factor = sl1 === 1 ? 1 : -1;
       const sl2Factor = sl2 === 1 ? 1 : -1;
       const sameTeam = sl1 === sl2 && div1 === div2;
 
-      const matchup = new Matchup(0, div1 * sl1Factor, div2 * sl2Factor);
-      matchups.push(matchup);
+      const matchup = new DivMatchup(
+        0,
+        div1 * sl1Factor,
+        div2 * sl2Factor,
+        teamsInDiv,
+        teamsInOppDiv
+      );
+      divMatchups.push(matchup);
 
       const matchupContainer = document.createElement("div");
       matchupContainer.classList.add("division-matchup");
@@ -280,20 +294,13 @@ window.onload = function () {
 
       const matchupSpan = document.createElement("span");
       matchupSpan.setAttribute("id", createSpanId(sl1, div1, sl2, div2));
-      matchupSpan.textContent = "(0 games per opponent)";
+      matchupSpan.textContent = "per opponent";
       matchupContainer.appendChild(matchupSpan);
 
       matchupInput.addEventListener("change", function () {
         const newTotal = Number(matchupInput.value);
         matchup.numGames = newTotal;
 
-        const opponents = sameTeam ? teamsInOppDiv - 1 : teamsInOppDiv;
-
-        matchupSpan.textContent = `(${Math.trunc(
-          newTotal / opponents
-        )} games per opponent${
-          newTotal % opponents === 0 ? "" : ` and ${newTotal % opponents} extra`
-        })`;
         updateHeaders();
       });
     };
@@ -326,6 +333,7 @@ window.onload = function () {
             i + 1,
             k + 1,
             divScheduleContainer,
+            subLeague[j],
             subLeague[k]
           );
         }
@@ -337,11 +345,45 @@ window.onload = function () {
               2,
               k + 1,
               divScheduleContainer,
+              structure.subLeagues[0][j],
               structure.subLeagues[1][k]
             );
           }
         }
       }
     }
+
+    const btnStructureSubmit = document.createElement("button");
+    btnStructureSubmit.textContent = "Create Series Files";
+    scheduleContainer.appendChild(btnStructureSubmit);
+    btnStructureSubmit.addEventListener("click", function () {
+      const teams = [];
+      const teamToDiv = new Map();
+      console.log(structure);
+      for (let i = 0; i < structure.numSubLeagues; i++) {
+        const subLeague = structure.subLeagues[i];
+        for (let j = 0; j < subLeague.length; j++) {
+          for (let k = 0; k < subLeague[j]; k++) {
+            const team = new Team(teams.length + 1);
+            teams.push(team);
+
+            const divNum = (j + 1) * (i === 0 ? 1 : -1);
+            const mapEntry = teamToDiv.get(divNum);
+            if (mapEntry) {
+              mapEntry.push(teams.length);
+            } else {
+              teamToDiv.set(divNum, [teams.length]);
+            }
+          }
+        }
+      }
+
+      console.log(teams);
+      console.log(teamToDiv);
+      console.log(divMatchups);
+
+      for (const divMatchup of divMatchups) {
+      }
+    });
   });
 };
