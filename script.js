@@ -21,7 +21,26 @@ const DivMatchup = class {
   }
 };
 
+function init() {
+  const subLeague = document.getElementById("subleagues");
+  subLeague.selectedIndex = 0;
+
+  const divs1 = document.getElementById("divisions-1");
+  divs1.selectedIndex = 0;
+
+  const divs2 = document.getElementById("divisions-2");
+  divs2.selectedIndex = 0;
+
+  const teams1 = document.getElementById("teams-1-1");
+  teams1.selectedIndex = 2;
+
+  const teams2 = document.getElementById("teams-2-1");
+  teams2.selectedIndex = 2;
+}
+
 window.onload = function () {
+  init();
+
   const subleaguesSelect = document.getElementById("subleagues");
   const subleagueContainers = [
     ...document.querySelectorAll(`.${SUBLEAGUE_CLASS}`),
@@ -359,7 +378,7 @@ window.onload = function () {
     btnStructureSubmit.addEventListener("click", function () {
       const teams = [];
       const teamToDiv = new Map();
-      console.log(structure);
+
       for (let i = 0; i < structure.numSubLeagues; i++) {
         const subLeague = structure.subLeagues[i];
         for (let j = 0; j < subLeague.length; j++) {
@@ -378,12 +397,43 @@ window.onload = function () {
         }
       }
 
-      console.log(teams);
-      console.log(teamToDiv);
-      console.log(divMatchups);
-
       for (const divMatchup of divMatchups) {
+        if (divMatchup.numGames === 0) continue;
+        if (divMatchup.div1 === divMatchup.div2) {
+          const teamsInDiv = teamToDiv.get(divMatchup.div1);
+          //teamInDiv is array of teamId. teamId = index in teams array + 1
+          for (let i = 0; i < teamsInDiv.length - 1; i++) {
+            const teamId1 = teamsInDiv[i];
+            for (let j = i + 1; j < teamsInDiv.length; j++) {
+              const teamId2 = teamsInDiv[j];
+              const teamMatchup = new TeamMatchup(
+                divMatchup.numGames,
+                teamId1,
+                teamId2
+              );
+
+              teams[teamId1 - 1].addMatchup(teamMatchup);
+              teams[teamId2 - 1].addMatchup(teamMatchup);
+            }
+          }
+        } else {
+          const teamsInDiv1 = teamToDiv.get(divMatchup.div1);
+          const teamsInDiv2 = teamToDiv.get(divMatchup.div2);
+          for (const teamId1 of teamsInDiv1) {
+            for (const teamId2 of teamsInDiv2) {
+              const teamMatchup = new TeamMatchup(
+                divMatchup.numGames,
+                teamId1,
+                teamId2
+              );
+
+              teams[teamId1 - 1].addMatchup(teamMatchup);
+              teams[teamId2 - 1].addMatchup(teamMatchup);
+            }
+          }
+        }
       }
+      console.log(teams);
     });
   });
 };
