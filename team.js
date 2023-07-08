@@ -7,13 +7,25 @@ const TeamMatchup = class {
   }
 };
 
+const Series = class {
+  constructor(numGames, homeTeam, awayTeam) {
+    this.numGames = numGames;
+    this.homeTeam = homeTeam;
+    this.awayTeam = awayTeam;
+    this.homeGames = 0;
+    this.awayGames = 0;
+  }
+};
+
 const Team = class {
   constructor(teamId) {
     this.teamId = teamId;
-    this.matchups = [];
+    this.seriesList = [];
   }
 
-  addMatchup(matchup) {
-    this.matchups.push(matchup);
+  addSeries(series) {
+    this.seriesList.push(series);
+    if (this.teamId === series.homeTeam) this.homeGames += series.numGames;
+    else this.awayGames += series.numGames;
   }
 };

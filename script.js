@@ -218,6 +218,66 @@ window.onload = function () {
     return `opp-sl-${sl1}-div-${div1}-vs-sl-${sl2}-div-${div2}`;
   }
 
+  function breakIntoSeries(teams, numGames) {
+    let n = numGames;
+    const seriesArr = [];
+    while (true) {
+      if (n < 5) {
+        seriesArr.push(new Series(n, ...teams));
+        break;
+      } else if (n === 8) {
+        seriesArr.push(new Series(4, ...teams));
+        seriesArr.push(new Series(4, ...teams));
+        break;
+      } else {
+        const series = new Series(3, ...teams);
+        n -= 3;
+      }
+    }
+    return seriesArr;
+  }
+
+  function createSeriesFromTeamMatchup(teamMatchup) {
+    let seriesSets;
+    if (teamMatchup.numGames < 4) {
+      const seriesHome = new Series(teamMatchup.numGames, ...teamMatchup.teams);
+      const seriesAway = new Series(
+        teamMatchup.numGames,
+        ...teamMatchup.teams.reverse()
+      );
+
+      seriesSets = [[seriesHome], [seriesAway]];
+    } else if (teamMatchup.numGames === 6 || teamMatchup.numGames === 8) {
+      const seriesLength = teamMatchup.numGames / 2;
+      const seriesHome = new Series(seriesLength, ...teamMatchup.teams);
+      const seriesAway = new Series(
+        seriesLength,
+        ...teamMatchup.teams.reverse()
+      );
+
+      seriesSets = [[seriesHome, seriesAway]];
+    } else if (teamMatchup.numGames % 2 === 0) {
+      const halfGames = teamMatchup.numGames / 2;
+      seriesSets = [
+        ...breakIntoSeries(teamMatchup.teams, halfGames),
+        ...breakIntoSeries(teamMatchup.teams.reverse(), halfGames),
+      ];
+    } else {
+      const lowHalfGames = Math.floor(teamMatchup.numGames / 2);
+      const highHalfGames = lowHalfGames + 1;
+      seriesSets = [
+        [
+          ...breakIntoSeries(teamMatchup.teams, lowHalfGames),
+          ...breakIntoSeries(teamMatchup.teams.reverse(), highHalfGames),
+        ],
+        [
+          ...breakIntoSeries(teamMatchup.teams, highHalfGames),
+          ...breakIntoSeries(teamMatchup.teams.reverse(), lowHalfGames),
+        ],
+      ];
+    }
+  }
+
   btnStructureSubmit.addEventListener("click", function () {
     for (const child of scheduleContainer.children) {
       if (child.localName !== "h2") {
@@ -397,6 +457,7 @@ window.onload = function () {
         }
       }
 
+      const teamMatchups = [];
       for (const divMatchup of divMatchups) {
         if (divMatchup.numGames === 0) continue;
         if (divMatchup.div1 === divMatchup.div2) {
@@ -408,12 +469,10 @@ window.onload = function () {
               const teamId2 = teamsInDiv[j];
               const teamMatchup = new TeamMatchup(
                 divMatchup.numGames,
-                teamId1,
-                teamId2
+                teams[teamId1 - 1],
+                teams[teamId2 - 1]
               );
-
-              teams[teamId1 - 1].addMatchup(teamMatchup);
-              teams[teamId2 - 1].addMatchup(teamMatchup);
+              teamMatchups.push(teamMatchup);
             }
           }
         } else {
@@ -423,17 +482,15 @@ window.onload = function () {
             for (const teamId2 of teamsInDiv2) {
               const teamMatchup = new TeamMatchup(
                 divMatchup.numGames,
-                teamId1,
-                teamId2
+                teams[teamId1 - 1],
+                teams[teamId2 - 1]
               );
-
-              teams[teamId1 - 1].addMatchup(teamMatchup);
-              teams[teamId2 - 1].addMatchup(teamMatchup);
+              teamMatchups.push(teamMatchup);
             }
           }
         }
       }
-      console.log(teams);
+      console.log(teamMatchups);
     });
   });
 };
