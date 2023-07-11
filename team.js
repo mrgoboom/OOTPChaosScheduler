@@ -12,8 +12,6 @@ const Series = class {
     this.numGames = numGames;
     this.homeTeam = homeTeam;
     this.awayTeam = awayTeam;
-    this.homeGames = 0;
-    this.awayGames = 0;
   }
 };
 
@@ -21,11 +19,53 @@ const Team = class {
   constructor(teamId) {
     this.teamId = teamId;
     this.seriesList = [];
+    this.seriesSets = [];
+    this.homeGames = 0;
+    this.awayGames = 0;
   }
 
-  addSeries(series) {
-    this.seriesList.push(series);
-    if (this.teamId === series.homeTeam) this.homeGames += series.numGames;
-    else this.awayGames += series.numGames;
+  addSeriesSet(seriesSet) {
+    if (!Array.isArray(seriesSet[0])) {
+      for (const series of seriesSet) {
+        this.seriesList.push(this.seriesList);
+        if (this === series.homeTeam) {
+          this.homeGames += series.numGames;
+        } else {
+          this.awayGames += series.numGames;
+        }
+      }
+    } else {
+      this.seriesSets.push(seriesSet);
+    }
+  }
+
+  getDiff() {
+    return this.homeGames - this.awayGames;
+  }
+
+  copySeriesList() {
+    this.seriesListB = [...this.seriesList];
+  }
+
+  //only called after copySeriesList
+  selectForPrimarySchedule(seriesOptions, index) {
+    for (const series of seriesOptions[index]) {
+      this.seriesList.push(series);
+      if (this === series.homeTeam) {
+        this.homeGames += series.numGames;
+      } else {
+        this.awayGames += series.numGames;
+      }
+    }
+    for (const series of seriesOptions[1 - index]) {
+      this.seriesListB.push(series);
+      if (this === series.homeTeam) {
+        this.homeGames += series.numGames;
+      } else {
+        this.awayGames += series.numGames;
+      }
+    }
+    const setIndex = this.seriesSets.indexOf(seriesOptions);
+    this.seriesSets.splice(setIndex, 1);
   }
 };

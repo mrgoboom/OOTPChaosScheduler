@@ -268,14 +268,39 @@ window.onload = function () {
       seriesSets = [
         [
           ...breakIntoSeries(teamMatchup.teams, lowHalfGames),
-          ...breakIntoSeries(teamMatchup.teams.reverse(), highHalfGames),
+          ...breakIntoSeries(teamMatchup.teams.toReversed(), highHalfGames),
         ],
         [
           ...breakIntoSeries(teamMatchup.teams, highHalfGames),
-          ...breakIntoSeries(teamMatchup.teams.reverse(), lowHalfGames),
+          ...breakIntoSeries(teamMatchup.teams.toReversed(), lowHalfGames),
         ],
       ];
     }
+    return seriesSets;
+  }
+
+  //return the seriesSet with team as home team for most games
+  function setAsPrimaryHomeTeam(seriesOptions, team) {
+    for (let i = 0; i < seriesOptions.length; i++) {
+      const option = seriesOptions[i];
+      let homeGames = 0;
+      let awayGames = 0;
+      for (const series of option) {
+        if (team === series.homeTeam) {
+          homeGames += series.numGames;
+        } else {
+          awayGames += series.numGames;
+        }
+      }
+
+      if (homeGames > awayGames) {
+        return i;
+      }
+    }
+    console.log(
+      `Possible error: Could not find option with team ${team.teamId} as primary home team.`
+    );
+    return 0;
   }
 
   btnStructureSubmit.addEventListener("click", function () {
@@ -457,7 +482,6 @@ window.onload = function () {
         }
       }
 
-      const teamMatchups = [];
       for (const divMatchup of divMatchups) {
         if (divMatchup.numGames === 0) continue;
         if (divMatchup.div1 === divMatchup.div2) {
@@ -472,7 +496,9 @@ window.onload = function () {
                 teams[teamId1 - 1],
                 teams[teamId2 - 1]
               );
-              teamMatchups.push(teamMatchup);
+              const matchupSeries = createSeriesFromTeamMatchup(teamMatchup);
+              teams[teamId1 - 1].addSeriesSet(matchupSeries);
+              teams[teamId2 - 1].addSeriesSet(matchupSeries);
             }
           }
         } else {
@@ -485,12 +511,38 @@ window.onload = function () {
                 teams[teamId1 - 1],
                 teams[teamId2 - 1]
               );
-              teamMatchups.push(teamMatchup);
+              const matchupSeries = createSeriesFromTeamMatchup(teamMatchup);
+              teams[teamId1 - 1].addSeriesSet(matchupSeries);
+              teams[teamId2 - 1].addSeriesSet(matchupSeries);
             }
           }
         }
       }
-      console.log(teamMatchups);
+      console.log(teams);
+      let requiresSecond = false;
+      const diffMap = new Map();
+      for (const team of teams) {
+        diffMap.set(team, 0);
+        if (team.seriesSets.length > 0) requiresSecond = true;
+      }
+      if (requiresSecond) {
+        teams.forEach((team) => team.copySeriesList());
+        for (const team of teams) {
+          for (const set of team.seriesSets) {
+            const opp =
+              team === set[0][0].homeTeam
+                ? set[0][0].awayTeam
+                : set[0][0].homeTeam;
+            const homeTeam = diffMap.get(team) > diffMap.get(opp) ? opp : team;
+            const prefSchedIndex = setAsPrimaryHomeTeam(set, homeTeam);
+            team.selectForPrimarySchedule(set, prefSchedIndex);
+            opp.selectForPrimarySchedule(set, prefSchedIndex);
+            diffMap.set(team, team.getDiff());
+            diffMap.set(opp, opp.getDiff());
+          }
+          console.log(`Diff after scheduling: ${team.getDiff()}`);
+        }
+      }
     });
   });
 };
