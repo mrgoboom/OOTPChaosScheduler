@@ -230,7 +230,7 @@ window.onload = function () {
         seriesArr.push(new Series(4, ...teams));
         break;
       } else {
-        const series = new Series(3, ...teams);
+        seriesArr.push(new Series(3, ...teams));
         n -= 3;
       }
     }
@@ -301,6 +301,14 @@ window.onload = function () {
       `Possible error: Could not find option with team ${team.teamId} as primary home team.`
     );
     return 0;
+  }
+
+  function createSeriesText(allSeries) {
+    let output = "#Home,Away,Games,Days\n";
+    for (const series of allSeries) {
+      output += `${series.homeTeam.teamId}, ${series.awayTeam.teamId}, ${series.numGames}, ${series.numGames}\n`;
+    }
+    return output;
   }
 
   btnStructureSubmit.addEventListener("click", function () {
@@ -518,7 +526,7 @@ window.onload = function () {
           }
         }
       }
-      console.log(teams);
+
       let requiresSecond = false;
       const diffMap = new Map();
       for (const team of teams) {
@@ -543,6 +551,19 @@ window.onload = function () {
           console.log(`Diff after scheduling: ${team.getDiff()}`);
         }
       }
+      console.log(teams);
+      //TODO: Support doubleheaders. Fill in remaining games within division
+      //TODO: Print schedule files
+      const allSeries = new Set();
+      const allSeriesB = new Set();
+      for (const team of teams) {
+        team.seriesList.forEach((series) => allSeries.add(series));
+        if (requiresSecond) {
+          team.seriesListB.forEach((series) => allSeriesB.add(series));
+        }
+      }
+      console.log(allSeries);
+      console.log(createSeriesText(allSeries));
     });
   });
 };

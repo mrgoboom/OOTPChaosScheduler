@@ -27,7 +27,7 @@ const Team = class {
   addSeriesSet(seriesSet) {
     if (!Array.isArray(seriesSet[0])) {
       for (const series of seriesSet) {
-        this.seriesList.push(this.seriesList);
+        this.seriesList.push(series);
         if (this === series.homeTeam) {
           this.homeGames += series.numGames;
         } else {
