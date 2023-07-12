@@ -562,8 +562,22 @@ window.onload = function () {
           team.seriesListB.forEach((series) => allSeriesB.add(series));
         }
       }
-      console.log(allSeries);
-      console.log(createSeriesText(allSeries));
+      const outputContainer = document.querySelector(".output-container");
+      outputContainer.classList.remove("hidden");
+
+      const seriesText = createSeriesText(allSeries);
+
+      const downloadLink = createDownloadLink(
+        `series${requiresSecond ? "-a" : ""}`,
+        seriesText
+      );
+      outputContainer.appendChild(downloadLink);
+
+      if (requiresSecond) {
+        const seriesTextB = createSeriesText(allSeriesB);
+        const downloadLinkB = createDownloadLink("series-b", seriesTextB);
+        outputContainer.appendChild(downloadLinkB);
+      }
     });
   });
 };
