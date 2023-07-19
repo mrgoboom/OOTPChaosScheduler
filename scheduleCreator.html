@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>OOTP Chaos Scheduler</title>
+    <link href="style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <script src="scheduleCreator.js"></script>
+    <script src="team.js"></script>
+    <script src="download.js"></script>
+    <section class="layout">
+      <div class="header"><h1>OOTP Chaos Scheduler</h1></div>
+      <div class="main">
+        <div class="settings-container">
+          <h2>Schedule Settings</h2>
+          <label for="series-file">Select series file: </label>
+          <input
+            type="file"
+            id="series-file"
+            name="series-file"
+            accept=".csv"
+          />
+          <div id="games-label">Games per team: 0</div>
+          <label for="days">Total number of days:</label>
+          <input type="number" id="days" name="days" value="0" />
+          <button id="create-schedule" type="button">Create Schedule</button>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>

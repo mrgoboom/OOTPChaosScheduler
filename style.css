@@ -42,6 +42,11 @@ button {
   margin: 5px;
   width: 90px;
 }
+pre {
+  padding: 5px;
+  border: solid black;
+  background-color: white;
+}
 .layout {
   width: 100%;
   height: 100%;
@@ -73,6 +78,14 @@ button {
   padding: 5px;
   margin-bottom: 5px;
 }
+.link-container {
+  background-color: rgb(246, 182, 114);
+  border: thick solid black;
+  overflow-y: auto;
+  padding: 5px;
+  margin-bottom: 5px;
+}
+
 .output-container {
   background-color: rgb(246, 182, 114);
   border: thick solid black;

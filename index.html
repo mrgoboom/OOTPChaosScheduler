@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>OOTP Chaos Scheduler</title>
+    <link href="style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <section class="layout">
+      <div class="header"><h1>OOTP Chaos Scheduler</h1></div>
+      <div class="main">
+        <div class="link-container">
+          <h2>Step 1. Create Series File</h2>
+          <div><a href="defineSeries.html">Series Creation Tool</a></div>
+          <div>
+            <p>
+              If the tool cannot create the set of series you want or you have a
+              particular idea in mind you can create your own series file with
+              the format below. Lines beginning with '#' will be ignored. The
+              repeat space is optional. Team numbers begin with 1 and start with
+              the first team alphabetically in division 1, subleague 1, proceeds
+              alphabetically within the division, then moves through all
+              divisions in subleague 1 in the same manner. The numbering then
+              continues into subleague 2 similarly. Days and Games should be the
+              same number unless you wish to schedule a doubleheader in that
+              series, in which case days should be 1 less than games. Repeat
+              signals how many of those series should be scheduled.
+            </p>
+            <h2>Example Series File</h2>
+            <pre>
+#Home,Away,Games,Days,Repeat
+1,2,3,3,2
+1,2,3,2,1
+2,1,3,3,3
+1,3,3,3,2
+1,3,3,2,1
+3,1,3,3,3
+1,4,3,3,3
+4,1,3,3,2
+4,1,3,2,1
+1,5,3,3,3
+5,1,3,3,2
+5,1,3,2,1
+2,3,3,3,2
+2,3,3,2,1
+3,2,3,3,3
+2,4,3,3,2
+2,4,3,2,1
+4,2,3,3,3
+2,5,3,3,3
+5,2,3,3,2
+5,2,3,2,1
+3,4,3,3,2
+3,4,3,2,1
+4,3,3,3,3
+3,5,3,3,2
+3,5,3,2,1
+5,3,3,3,3
+4,5,3,3,2
+4,5,3,2,1
+5,4,3,3,3
+            </pre>
+          </div>
+        </div>
+        <div class="link-container">
+          <h2>Step 2. Create Schedule File</h2>
+          <div><a href="scheduleCreator.html">Schedule Creation Tool</a></div>
+          <div>
+            <p>
+              Be sure to have your series file ready before proceeding to this
+              step. This will create a schedule file that can be imported into
+              OOTP.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </body>
+</html>
