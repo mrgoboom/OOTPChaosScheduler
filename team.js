@@ -8,8 +8,9 @@ const TeamMatchup = class {
 };
 
 const Series = class {
-  constructor(numGames, homeTeam, awayTeam) {
+  constructor(numGames, homeTeam, awayTeam, numDays = numGames) {
     this.numGames = numGames;
+    this.numDays = numDays;
     this.homeTeam = homeTeam;
     this.awayTeam = awayTeam;
   }
@@ -22,6 +23,15 @@ const Team = class {
     this.seriesSets = [];
     this.homeGames = 0;
     this.awayGames = 0;
+  }
+
+  addSeries(series) {
+    this.seriesList.push(series);
+    if (this === series.homeTeam) {
+      this.homeGames += series.numGames;
+    } else {
+      this.awayGames += series.numGames;
+    }
   }
 
   addSeriesSet(seriesSet) {
