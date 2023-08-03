@@ -23,6 +23,7 @@ const Team = class {
     this.seriesSets = [];
     this.homeGames = 0;
     this.awayGames = 0;
+    this.offDays = 0;
   }
 
   addSeries(series) {
@@ -77,5 +78,14 @@ const Team = class {
     }
     const setIndex = this.seriesSets.indexOf(seriesOptions);
     this.seriesSets.splice(setIndex, 1);
+  }
+
+  setOffDays(days) {
+    let gameDays = 0;
+    for (const series of this.seriesList) {
+      gameDays += series.numDays;
+    }
+    this.offDays = days - gameDays;
+    console.log(this.offDays);
   }
 };

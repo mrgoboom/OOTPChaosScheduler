@@ -311,6 +311,19 @@ window.onload = function () {
     return output;
   }
 
+  function createStructureText(structure) {
+    let structureText = "";
+    for (let i = 1; i <= structure.numSubLeagues; i++) {
+      structureText += `SL${i}`;
+      const subleague = structure.subLeagues[i - 1];
+      for (let j = 0; j < subleague.length; j++) {
+        structureText += `D${j + 1}T${subleague[j]}`;
+      }
+    }
+    structureText += "\n";
+    return structureText;
+  }
+
   btnStructureSubmit.addEventListener("click", function () {
     for (const child of scheduleContainer.children) {
       if (child.localName !== "h2") {
@@ -565,11 +578,12 @@ window.onload = function () {
       const outputContainer = document.querySelector(".output-container");
       outputContainer.classList.remove("hidden");
 
+      const structureText = createStructureText(structure);
       const seriesText = createSeriesText(allSeries);
 
       const downloadLink = createDownloadLink(
         `series${requiresSecond ? "-a" : ""}`,
-        seriesText
+        structureText + seriesText
       );
       outputContainer.appendChild(downloadLink);
 

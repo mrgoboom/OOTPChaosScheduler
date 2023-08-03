@@ -18,18 +18,21 @@
             <p>
               If the tool cannot create the set of series you want or you have a
               particular idea in mind you can create your own series file with
-              the format below. Lines beginning with '#' will be ignored. The
-              repeat space is optional. Team numbers begin with 1 and start with
-              the first team alphabetically in division 1, subleague 1, proceeds
-              alphabetically within the division, then moves through all
-              divisions in subleague 1 in the same manner. The numbering then
-              continues into subleague 2 similarly. Days and Games should be the
-              same number unless you wish to schedule a doubleheader in that
-              series, in which case days should be 1 less than games. Repeat
-              signals how many of those series should be scheduled.
+              the format below. The first line should define the structure of
+              your league with the same format as is used for schedule files.
+              Lines beginning with '#' will be ignored. The repeat space is
+              optional. Team numbers begin with 1 and start with the first team
+              alphabetically in division 1, subleague 1, proceeds alphabetically
+              within the division, then moves through all divisions in subleague
+              1 in the same manner. The numbering then continues into subleague
+              2 similarly. Days and Games should be the same number unless you
+              wish to schedule a doubleheader in that series, in which case days
+              should be 1 less than games. Repeat signals how many of those
+              series should be scheduled.
             </p>
             <h2>Example Series File</h2>
             <pre>
+SL1D1T5
 #Home,Away,Games,Days,Repeat
 1,2,3,3,2
 1,2,3,2,1

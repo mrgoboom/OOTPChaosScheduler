@@ -1,5 +1,6 @@
 "use strict";
 let teams = [];
+let structure;
 
 function findTeamWithId(id) {
   for (const team of teams) {
@@ -10,6 +11,24 @@ function findTeamWithId(id) {
   const team = new Team(id);
   teams.push(team);
   return team;
+}
+
+function extractStructure(string) {
+  const extracted = [];
+  for (const subleagueDef of string.split(/SL\d/g)) {
+    if (subleagueDef.trim() === "") continue;
+    console.log(`This is a group: ${subleagueDef}`);
+    const subleague = [];
+    extracted.push(subleague);
+    for (const divDef of subleagueDef.matchAll(/D\d+T\d+/g)) {
+      const index = divDef[0].indexOf("T");
+      const numTeams = divDef[0].slice(index + 1);
+      subleague.push(numTeams);
+      console.log(divDef);
+      console.log(`numTeams = ${divDef[0].slice(index + 1)}`);
+    }
+  }
+  return extracted;
 }
 
 window.onload = function () {
@@ -27,17 +46,19 @@ window.onload = function () {
     reader.onload = function (event) {
       teams = [];
       const fileContent = event.target.result;
-
+      let first = true;
       for (const line of fileContent.split("\n")) {
         if (line.startsWith("#") || line.trim() === "") continue;
+        if (first) {
+          structure = extractStructure(line);
+          first = false;
+          continue;
+        }
         const items = line.split(",");
         for (let i = 0; i < items.length; i++)
           items[i] = Number(items[i].trim());
         const [homeId, awayId, games, days, repeat] = items;
 
-        console.log(
-          `Home: ${homeId}, Away: ${awayId}, Games: ${games}, Days: ${days}, Repeat: ${repeat}`
-        );
         const homeTeam = findTeamWithId(homeId);
         const awayTeam = findTeamWithId(awayId);
         if (repeat) {
@@ -53,11 +74,17 @@ window.onload = function () {
         }
       }
       const totalGames = teams[0].homeGames + teams[0].awayGames;
-      console.log(totalGames);
+
       totalGamesLabel.textContent = `Games per team: ${totalGames}`;
       daysInput.value = totalGames;
     };
 
     reader.readAsText(file);
+  });
+  createScheduleButton.addEventListener("click", function () {
+    const days = daysInput.value;
+    for (const team of teams) {
+      team.setOffDays(days);
+    }
   });
 };
