@@ -1,31 +1,16 @@
 "use strict";
-let teams = [];
-let structure;
-
-function findTeamWithId(id) {
-  for (const team of teams) {
-    if (team.teamId === id) {
-      return team;
-    }
-  }
-  const team = new Team(id);
-  teams.push(team);
-  return team;
-}
+let league;
 
 function extractStructure(string) {
   const extracted = [];
   for (const subleagueDef of string.split(/SL\d/g)) {
     if (subleagueDef.trim() === "") continue;
-    console.log(`This is a group: ${subleagueDef}`);
     const subleague = [];
     extracted.push(subleague);
     for (const divDef of subleagueDef.matchAll(/D\d+T\d+/g)) {
       const index = divDef[0].indexOf("T");
       const numTeams = divDef[0].slice(index + 1);
       subleague.push(numTeams);
-      console.log(divDef);
-      console.log(`numTeams = ${divDef[0].slice(index + 1)}`);
     }
   }
   return extracted;
@@ -44,13 +29,13 @@ window.onload = function () {
     const reader = new FileReader();
 
     reader.onload = function (event) {
-      teams = [];
       const fileContent = event.target.result;
       let first = true;
       for (const line of fileContent.split("\n")) {
         if (line.startsWith("#") || line.trim() === "") continue;
         if (first) {
-          structure = extractStructure(line);
+          const structure = extractStructure(line);
+          league = new League(structure);
           first = false;
           continue;
         }
@@ -59,8 +44,8 @@ window.onload = function () {
           items[i] = Number(items[i].trim());
         const [homeId, awayId, games, days, repeat] = items;
 
-        const homeTeam = findTeamWithId(homeId);
-        const awayTeam = findTeamWithId(awayId);
+        const homeTeam = league.findTeamWithId(homeId);
+        const awayTeam = league.findTeamWithId(awayId);
         if (repeat) {
           for (let i = 0; i < repeat; i++) {
             const series = new Series(games, homeTeam, awayTeam, days);
@@ -73,7 +58,7 @@ window.onload = function () {
           awayTeam.addSeries(series);
         }
       }
-      const totalGames = teams[0].homeGames + teams[0].awayGames;
+      const totalGames = league.teams[0].homeGames + league.teams[0].awayGames;
 
       totalGamesLabel.textContent = `Games per team: ${totalGames}`;
       daysInput.value = totalGames;
@@ -81,10 +66,78 @@ window.onload = function () {
 
     reader.readAsText(file);
   });
+
+  function getTeamsReadyForSeries(day) {
+    const ready = [];
+    for (const team of league.teams) {
+      if (team.daysScheduled === day) {
+        ready.push(team);
+      }
+    }
+    return ready;
+  }
+
+  function nextDay(day) {
+    if (day === 6) {
+      return 0;
+    } else {
+      return day + 1;
+    }
+  }
+
   createScheduleButton.addEventListener("click", function () {
     const days = daysInput.value;
-    for (const team of teams) {
+    //0 = Monday, 1 = Tuesday, 2 = Wednesday, 3 = Thursday, 4 = Friday, 5 = Saturday, 6 = Sunday
+    let dayOfWeek = 4;
+    const allSeries = new Set();
+
+    for (const team of league.teams) {
       team.setOffDays(days);
+      for (const series of team.seriesList) {
+        allSeries.add(series);
+      }
+      team.initSchedule();
     }
+
+    for (let day = 0; day < days; day++) {
+      const needsScheduling = getTeamsReadyForSeries(day);
+      const remainingFactor = (days - day) / days;
+      for (const team of needsScheduling) {
+        team.scoreRemainingSeries(dayOfWeek, day);
+        team.sortSeries();
+        team.scoreRest(dayOfWeek, remainingFactor);
+      }
+      while (needsScheduling.length > 0) {
+        let lowestHighest = Number.MAX_SAFE_INTEGER;
+        let toSchedule;
+        for (const team of needsScheduling) {
+          team.filterCandidates(needsScheduling);
+          const best = team.getBest();
+          if (best.score < lowestHighest) {
+            lowestHighest = best.score;
+            toSchedule = best;
+          }
+        }
+
+        if (toSchedule.series === "Rest") {
+          toSchedule.team.scheduleOffDay();
+          const index = needsScheduling.findIndex((e) => e === toSchedule.team);
+          needsScheduling.splice(index, 1);
+        } else {
+          const opponent = toSchedule.series.getOpponent(toSchedule.team);
+          toSchedule.team.scheduleSeries(toSchedule.series);
+          opponent.scheduleSeries(toSchedule.series);
+          allSeries.delete(toSchedule.series);
+
+          const index = needsScheduling.findIndex((e) => e === toSchedule.team);
+          needsScheduling.splice(index, 1);
+
+          const oppIndex = needsScheduling.findIndex((e) => e === opponent);
+          needsScheduling.splice(oppIndex, 1);
+        }
+      }
+      dayOfWeek = nextDay(dayOfWeek);
+    }
+    console.log(league);
   });
 };
